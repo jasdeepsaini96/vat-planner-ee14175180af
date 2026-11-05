@@ -144,21 +144,29 @@ function splitTeams(tlcs, b1, b2) {
 
 /* ---------- map ---------- */
 const dark = matchMedia("(prefers-color-scheme: dark)");
-const map = L.map("map", { zoomSnap: 0.5, minZoom: 5, maxZoom: 18, preferCanvas: false });
+/* Britain-only base map drawn from data/gb-map.json (Natural Earth, public domain):
+   no outside map services, so nothing can fail to load and no other country is shown. */
+const GB_BOUNDS = L.latLngBounds([[49.7, -8.8], [61.0, 2.2]]);
+const map = L.map("map", { zoomSnap: 0.5, minZoom: 5, maxZoom: 16, maxBounds: GB_BOUNDS.pad(0.15), maxBoundsViscosity: 0.8 });
 map.fitBounds([[50.0, -5.8], [57.6, 1.8]]);
 map.attributionControl.setPrefix(false);
-let baseTiles = null;
-function setBase() {
-  if (baseTiles) baseTiles.remove();
-  baseTiles = L.tileLayer(CFG.basemap, { maxZoom: 19, className: "base-tiles", attribution: CFG.basemapAttribution }).addTo(map);
-  baseTiles.bringToBack();
+map.attributionControl.addAttribution("Coastline &amp; railways: Natural Earth");
+const baseRenderer = L.canvas({ padding: 0.3 });
+const landLayer = L.layerGroup().addTo(map), railLayer = L.layerGroup();
+let GEO = null;
+const railWeight = () => { const z = map.getZoom(); return z < 7 ? 0.8 : z < 9 ? 1.1 : z < 11 ? 1.5 : 2 };
+function drawBase() {
+  if (!GEO) return;
+  landLayer.clearLayers(); railLayer.clearLayers();
+  L.polygon(GEO.land.map(r => r.map(([x, y]) => [y, x])), { renderer: baseRenderer, interactive: false, color: css("--coast"), weight: 0.8, fillColor: css("--land"), fillOpacity: 1 }).addTo(landLayer);
+  L.polyline(GEO.rail.map(l => l.map(([x, y]) => [y, x])), { renderer: baseRenderer, interactive: false, color: css("--rail"), weight: railWeight(), opacity: 0.9, lineJoin: "round" }).addTo(railLayer);
 }
-setBase();
-dark.addEventListener("change", () => { setBase(); styleMarkers(); drawRoute() });
-const railTiles = L.tileLayer(CFG.railway, { maxZoom: 19, opacity: 0.85, className: "rail-tiles", attribution: CFG.railwayAttribution });
-if (ls.get("showRail", true)) railTiles.addTo(map);
+dark.addEventListener("change", () => { drawBase(); styleMarkers(); drawRoute() });
+map.on("zoomend", () => railLayer.eachLayer(l => l.setStyle({ weight: railWeight() })));
+if (ls.get("showRail", true)) railLayer.addTo(map);
 $("showRail").checked = ls.get("showRail", true);
-$("showRail").onchange = e => { ls.set("showRail", e.target.checked); e.target.checked ? railTiles.addTo(map) : railTiles.remove() };
+$("showRail").onchange = e => { ls.set("showRail", e.target.checked); e.target.checked ? railLayer.addTo(map) : railLayer.remove() };
+fetch("data/gb-map.json").then(r => r.json()).then(g => { GEO = g; drawBase() }).catch(() => { });
 $("showNames").checked = ls.get("showNames", true);
 $("showNames").onchange = e => { ls.set("showNames", e.target.checked); placeLabels() };
 

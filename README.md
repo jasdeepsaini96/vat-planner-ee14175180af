@@ -11,7 +11,7 @@ Keep the site address to yourself. See [Who can see and change what](#who-can-se
 
 ## What it does
 
-- **Map:** shows all 250 stations on an OpenStreetMap background, with railway lines from OpenRailwayMap. Both layers are on by default, and the railway lines can be switched off in the legend.
+- **Map:** Great Britain only, with the railway network drawn in thin lines (switch them off in the legend).
 - **Station names:** a name card appears beside each station at every zoom level. Cards that would overlap are left out, and more appear as you zoom in.
 - **Colours:** stations can be coloured by scan status (Not scanned, Planned, Scanned, Accepted / live, On hold), DfT category, programme month or team.
 - **Filters:** show or hide stations by status, DfT category, operator or search term.
@@ -49,7 +49,7 @@ Station positions were entered by hand for planning. They can be a few hundred m
 
 - **An unguessable address.** The repository is named `vat-planner-ee14175180af`, so nobody can guess the address.
 - **Hidden from search engines.** The page asks Google and other search engines not to list it.
-- **Only the domain is shared.** When the page asks the map services for map images, it sends only `jasdeepsaini96.github.io`, never the full address.
+- **Nothing is shared with other websites.** The map is built from files in this repository, so the page never tells another site its address.
 
 **Keep the repository private.** This needs GitHub Pro. A public repository is listed on your GitHub profile, which would reveal the address.
 
@@ -130,17 +130,9 @@ To run it on your own computer instead, download the repository and run the same
 
 ## Map layers
 
-| Layer | Source | Notes |
-|---|---|---|
-| Background map | [OpenStreetMap](https://www.openstreetmap.org/copyright) standard tiles | Greyed out so stations stand out, and darkened in dark mode |
-| Railway lines | [OpenRailwayMap](https://www.openrailwaymap.org/) standard style | Shows all rail lines, not only Network Rail's: main lines, branches, sidings, Underground, tram and heritage |
+The map is drawn entirely from `data/gb-map.json`. That file holds the coastline of Great Britain and its railway network from [Natural Earth](https://www.naturalearthdata.com/) (public domain). Only Britain is shown: England, Scotland and Wales. The site uses no outside map service, so the map always loads and never needs a key.
 
-Both are free services run by volunteers, with fair-use rules. That's fine for one person or a small team, but there are two catches:
-
-- **Commercial use:** OpenRailwayMap asks commercial projects to run their own map server, and it can block use it considers commercial.
-- **No guarantee:** neither service promises to be available.
-
-If the railway lines stop appearing, the fix is to draw the track from Network Rail's open data instead. Layer addresses and credits are in `config.js`.
+The railway layer shows the main network at national scale. Lines get slightly thicker as you zoom in, and you can switch them off in the legend. At city level it's simplified, and some short branches are missing. For full track detail, replace `data/gb-map.json` with Network Rail's open track data.
 
 ---
 
@@ -173,7 +165,7 @@ index.html                     the page
 config.js                      map layers and (optional) repository name
 assets/app.js                  all app logic
 assets/style.css               styles
-data/                          stations, statuses, plans, change log
+data/                          stations, statuses, plans, change log, Britain map
 scripts/audit.mjs              data checks and change logging (Node 20, no dependencies)
 .github/workflows/deploy.yml   runs the checks and publishes to GitHub Pages
 ```

@@ -2,7 +2,7 @@
 /* Layout: one-screen tool. Control rail on the left (tabs: stations / route / programme), map fills the rest. Stacks on phones. */
 :root{
   --bg:#eef0ec; --panel:#fbfcfa; --ink:#17212b; --muted:#5a6770; --line:#d5dad4; --soft:#e5e9e3;
-  --accent:#0b5b8a; --accent-ink:#ffffff; --sea:#d3e0e6; --land:#e9ebe3; --coast:#b9c2bb;
+  --accent:#0b5b8a; --accent-ink:#ffffff; --sea:#d3e0e6; --land:#e9ebe3; --coast:#a9b4ac; --rail:#3d4852;
   --st-none:#8a959d; --st-planned:#2f6fdb; --st-scanned:#1f9d55; --st-accepted:#0e7f86; --st-hold:#d3860b;
   --team1:#c2410c; --team2:#0b5b8a; --bad:#b42318; --good:#1f7a45;
   --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
@@ -11,12 +11,12 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#11171d; --panel:#161e25; --ink:#e4e9ec; --muted:#97a5ad; --line:#2a3640; --soft:#1e2830;
-  --accent:#5fb0e6; --accent-ink:#0b1720; --sea:#0e1820; --land:#1c262d; --coast:#33424c;
+  --accent:#5fb0e6; --accent-ink:#0b1720; --sea:#0e1820; --land:#1c262d; --coast:#3a4954; --rail:#9fb0bd;
   --st-none:#7d8a93; --st-planned:#6b9cf2; --st-scanned:#42c07a; --st-accepted:#3bc0c6; --st-hold:#f0a93a;
   --team1:#f07b45; --team2:#5fb0e6; --bad:#f07068; --good:#57c784; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#11171d; --panel:#161e25; --ink:#e4e9ec; --muted:#97a5ad; --line:#2a3640; --soft:#1e2830;
-  --accent:#5fb0e6; --accent-ink:#0b1720; --sea:#0e1820; --land:#1c262d; --coast:#33424c;
+  --accent:#5fb0e6; --accent-ink:#0b1720; --sea:#0e1820; --land:#1c262d; --coast:#3a4954; --rail:#9fb0bd;
   --st-none:#7d8a93; --st-planned:#6b9cf2; --st-scanned:#42c07a; --st-accepted:#3bc0c6; --st-hold:#f0a93a;
   --team1:#f07b45; --team2:#5fb0e6; --bad:#f07068; --good:#57c784; color-scheme:dark}
 html,body{height:100%;margin:0}
@@ -130,9 +130,6 @@ details summary{cursor:pointer;font-weight:600}
 .leaflet-control-attribution a{color:var(--muted)!important}
 .leaflet-tooltip{background:var(--ink);color:var(--panel);border:0;border-radius:4px;font-weight:600;box-shadow:none}
 .leaflet-tooltip-top:before{border-top-color:var(--ink)}
-.base-tiles{filter:grayscale(.75) contrast(.92) brightness(1.04)}
-@media (prefers-color-scheme: dark){.base-tiles{filter:grayscale(.8) invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
-.rail-tiles{filter:saturate(1.1)}
 .seq-icon{display:grid;place-items:center;border-radius:50%;color:#fff;font-family:var(--f-mono);font-size:10px;font-weight:700;border:2px solid var(--panel)}
 .base-icon{display:grid;place-items:center;border-radius:3px;color:#fff;font-family:var(--f-display);font-size:11px;font-weight:700;border:2px solid var(--panel)}
 
