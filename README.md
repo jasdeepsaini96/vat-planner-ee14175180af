@@ -160,7 +160,7 @@ Defaults come from the scanning cost model (`network_rail_scanning_cost_model.pd
 
 The cost model allows up to 3 scan days for large stations and 2 for medium ones. The defaults are set lower so all 250 fit into the 298 team-days available from 1 April.
 
-You can change any of these under **Programme → Assumptions**. Changes stay in your browser only. Use the Google Maps link on each day to check real driving times.
+You can change the rates, scan days and driving assumptions under **Programme → Assumptions**. Changes stay in your browser only. The scanning window and Tranche 1 order are set in `assets/app.js`. Use the Google Maps link on each day to check real driving times.
 
 ---
 
@@ -168,7 +168,7 @@ You can change any of these under **Programme → Assumptions**. Changes stay in
 
 ```
 index.html                     the page
-config.js                      map layers and (optional) repository name
+config.js                      office location and (optional) repository name
 assets/app.js                  all app logic
 assets/style.css               styles
 data/                          stations, statuses, plans, change log, Britain map
