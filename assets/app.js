@@ -159,14 +159,14 @@ map.attributionControl.addAttribution("Coastline &amp; railways: Natural Earth")
 const baseRenderer = L.canvas({ padding: 0.3 });
 const landLayer = L.layerGroup().addTo(map), railLayer = L.layerGroup();
 const MAP_STYLES = {
+  atlas: { name: "Atlas", sea: "#86bddf", land: "#efe7d4", coast: "#5f97bf", rail: "#6a4e3b" },
   sea: { name: "Sea blue", sea: "#a8d1ec", land: "#f6f4ee", coast: "#7eaecd", rail: "#444b55" },
   ordnance: { name: "Survey", sea: "#d4ecfa", land: "#ffffff", coast: "#8ec3e3", rail: "#1a1a1a" },
-  atlas: { name: "Atlas", sea: "#86bddf", land: "#efe7d4", coast: "#5f97bf", rail: "#6a4e3b" },
   grey: { name: "Light grey", sea: "#cfdbe2", land: "#eef0ec", coast: "#a9b4ac", rail: "#3d4852" },
   night: { name: "Night", sea: "#0b2338", land: "#1d2830", coast: "#2c4f6b", rail: "#9fb6c8" }
 };
-let mapStyle = ls.get("mapStyle", "auto");
-const curStyle = () => MAP_STYLES[mapStyle] || (dark.matches ? MAP_STYLES.night : MAP_STYLES.sea);
+let mapStyle = ls.get("mapStyle2", "auto");
+const curStyle = () => MAP_STYLES[mapStyle] || (dark.matches ? MAP_STYLES.night : MAP_STYLES.atlas);
 let GEO = null;
 const railWeight = () => { const z = map.getZoom(); return z < 7 ? 0.8 : z < 9 ? 1.1 : z < 11 ? 1.5 : 2 };
 function drawBase() {
@@ -177,9 +177,9 @@ function drawBase() {
   L.polyline(GEO.rail.map(l => l.map(([x, y]) => [y, x])), { renderer: baseRenderer, interactive: false, color: S.rail, weight: railWeight(), opacity: 0.9, lineJoin: "round" }).addTo(railLayer);
 }
 dark.addEventListener("change", () => { drawBase(); styleMarkers(); drawRoute() });
-$("mapStyle").innerHTML = `<option value="auto">Automatic (Sea blue / Night in dark mode)</option>` + Object.entries(MAP_STYLES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+$("mapStyle").innerHTML = `<option value="auto">Automatic (Atlas / Night in dark mode)</option>` + Object.entries(MAP_STYLES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
 $("mapStyle").value = MAP_STYLES[mapStyle] ? mapStyle : "auto";
-$("mapStyle").onchange = e => { mapStyle = e.target.value; ls.set("mapStyle", mapStyle); drawBase() };
+$("mapStyle").onchange = e => { mapStyle = e.target.value; ls.set("mapStyle2", mapStyle); drawBase() };
 drawBase();
 map.on("zoomend", () => railLayer.eachLayer(l => l.setStyle({ weight: railWeight() })));
 if (ls.get("showRail", true)) railLayer.addTo(map);
