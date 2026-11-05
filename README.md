@@ -1,104 +1,179 @@
 # Station Scan Planner
 
-Interactive map and route planner for the 250 baseline stations in the Network Rail
-**Virtual Accessibility Tours** tender (ITT 20054, Appendix A).
+A map and route planner for the 250 baseline stations in the Network Rail **Virtual Accessibility Tours** tender (ITT 20054, Appendix A).
 
-- Every station on a street map with Network Rail track lines (OpenRailwayMap) shown by default
-- Station name cards at every zoom level, placed so they never overlap
-- Colour by scan status, DfT category, programme month or team
-- Route planner for 1 or 2 teams: best visiting order, lowest-cost or fewest-days, day-by-day plan with a Google Maps link per day
-- Two-team programme against the cost model (100 by end May, 250 by October, £306,700 field budget)
-- Full change history: who changed what, when, from what to what
+**Live site:** https://jasdeepsaini96.github.io/vat-planner-ee14175180af/
+**Repository:** https://github.com/jasdeepsaini96/vat-planner-ee14175180af
 
-It is a static site: no server, no database, no build step. GitHub hosts the files, runs the checks and keeps the history.
+Keep the site address to yourself. See [Who can see and change what](#who-can-see-and-change-what).
+
+---
+
+## What it does
+
+- **Map:** shows all 250 stations on an OpenStreetMap background, with railway lines from OpenRailwayMap. Both layers are on by default, and the railway lines can be switched off in the legend.
+- **Station names:** a name card appears beside each station at every zoom level. Cards that would overlap are left out, and more appear as you zoom in.
+- **Colours:** stations can be coloured by scan status (Not scanned, Planned, Scanned, Accepted / live, On hold), DfT category, programme month or team.
+- **Filters:** show or hide stations by status, DfT category, operator or search term.
+- **Station cards:** Appendix A details for each station. You can set its status, scan date and notes, and see its change history.
+- **Route planner:** works for 1 or 2 teams. It finds the best visiting order, either lowest cost or fewest days. It gives a day-by-day plan with hotel nights, costs and a Google Maps link for each day.
+- **Programme:** the two-team scenario from the cost model. It checks 100 stations by end of May and all 250 by October against the £306,700 field budget.
+- **History:** who changed what and when, from what to what, with a link to each change on GitHub.
+
+---
 
 ## Where the data lives
 
 Everything is in the `data/` folder of this repository.
 
-| File | What it holds | Who changes it |
+| File | What it holds | How it changes |
 |---|---|---|
-| `data/stations.json` | The 250 stations from Appendix A: code, name, operator, DfT category, step-free category, footfall, asset counts, coordinates | Rarely; edit by hand if a station is substituted |
-| `data/status.json` | Current status, scan date and notes per station | Your team, through the site's **Save to GitHub** step |
-| `data/plans.json` | Saved route plans | Your team, the same way |
-| `data/audit-log.csv` | One row per changed field: time, commit, GitHub user, station, field, old value, new value, name typed in the site, commit message | The audit workflow only. Don't edit it |
+| `data/stations.json` | The 250 stations from Appendix A: code, name, operator, DfT category, step-free category, footfall, asset counts and map position | Edit by hand only, for example if a station is substituted |
+| `data/status.json` | Each station's status, scan date and notes | Through the site's **Save to GitHub** button |
+| `data/plans.json` | Saved route plans | Through the site's **Save to GitHub** button |
+| `data/audit-log.csv` | One row per change: time, commit, GitHub account, station, field, old value, new value, name typed in the site, commit message | Written automatically. Don't edit it |
 
-Settings that are personal to each person (cost assumptions, current route, map toggles, unsaved edits) stay in their own browser's local storage.
+Some settings stay in your own browser and are never uploaded: cost assumptions, the route you're building, map toggles and any unsaved edits. A different browser or computer starts with the defaults.
 
-Station coordinates were entered by hand for planning and can be a few hundred metres out. Correct any in `data/stations.json`.
+Station positions were entered by hand for planning. They can be a few hundred metres out. Correct any of them in `data/stations.json`.
 
-## How access and auditing work
+---
 
-There is no login on the site itself. **Reading** is open to anyone who can open the site. **Changing** data means committing to this repository, so GitHub's own access controls decide who can make changes: only people with write access to the repo can save.
+## Who can see and change what
 
-Every push runs `.github/workflows/deploy.yml`, which:
+**Changing data:** only people with write access to this repository can save changes. Right now that's only the owner. Don't add collaborators under **Settings → Collaborators** unless you want them to be able to save.
 
-1. Checks `status.json` and `plans.json`. Unknown station codes, invalid statuses, bad dates and broken JSON fail the run, and the site isn't updated.
-2. Compares each commit with the one before and appends the differences to `data/audit-log.csv`, using the GitHub account that made the commit.
-3. Publishes the site to GitHub Pages.
+**Using the site:** anyone who has the address can open the site and click around. Edits they make stay in their own browser and never reach your data.
 
-The **History** tab and each station card show the log, and every entry links to its commit on GitHub. Git history is the second, untamperable record: any change to any file is visible under the repository's commit history.
+**Seeing the site:** GitHub Pages sites on personal accounts can't require a login. The site is protected in three other ways:
 
-Optional hardening:
+- **An unguessable address.** The repository is named `vat-planner-ee14175180af`, so nobody can guess the address.
+- **Hidden from search engines.** The page asks Google and other search engines not to list it.
+- **Only the domain is shared.** When the page asks the map services for map images, it sends only `jasdeepsaini96.github.io`, never the full address.
 
-- **Settings → Branches → Add rule for `main`.** Turn on "Require a pull request before merging" if you want a second person to approve changes. If you do, allow GitHub Actions to push (or the audit log commit will fail).
-- Give colleagues **Write** access under **Settings → Collaborators and teams**. Anyone with only Read access can view but not change data.
+**Keep the repository private.** This needs GitHub Pro. A public repository is listed on your GitHub profile, which would reveal the address.
 
-## Important: who can see the site
+**Anyone you give the link to can open it.** The tender pack is marked OFFICIAL, so keep names, phone numbers and security details out of station notes.
 
-On GitHub Free, Pro and Team plans, **a GitHub Pages site is public on the internet even when the repository is private.** Anyone with the address can read the station list, statuses and notes. The tender pack is marked OFFICIAL, so decide before publishing:
+If you ever need a real login, the options are:
 
-- **GitHub Enterprise Cloud:** turn on private Pages (Settings → Pages → Visibility: Private). Only signed-in members of your organisation can open the site.
-- **Otherwise:** keep the repository private and don't enable Pages. Each person runs the site locally (see below) from their own clone. Saving and the audit log work the same way, by committing.
-- Avoid putting names, phone numbers or other personal details in station notes.
+- **GitHub Enterprise Cloud:** offers private Pages for organisation members.
+- **GitHub Codespaces:** run the site privately inside your own account (see [Run it privately with Codespaces](#run-it-privately-with-codespaces)).
 
-## Set up on GitHub Pages
-
-1. Create a repository (for example `station-scan-planner`) and upload the contents of this folder, including the hidden `.github` folder.
-2. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-3. **Settings → Actions → General → Workflow permissions: Read and write permissions.**
-4. Push or run the workflow (**Actions → Check, log and publish → Run workflow**). The site appears at `https://<your-org>.github.io/station-scan-planner/` after about a minute.
-5. If you use a custom domain, set `repo: "your-org/station-scan-planner"` in `config.js` so the **Save** links point at the right repository. On a `github.io` address this is detected automatically.
-
-## Run it locally
-
-The site must be served over HTTP (opening `index.html` directly from disk won't load the data):
-
-```bash
-cd station-scan-planner
-python3 -m http.server 8000
-# open http://localhost:8000
-```
+---
 
 ## Saving changes (day to day)
 
-1. Change statuses, dates or notes in the site, or save a route plan. A yellow bar shows how many changes are unsaved. They're kept in your browser until you save them.
-2. Click **Save to GitHub**. Type your name once (it's recorded in the log beside your GitHub account) and check the commit message.
-3. Click **Copy contents**, then **Open status.json on GitHub to edit**. Select everything in the GitHub editor, paste, and click **Commit changes**. Do the same for `plans.json` if listed.
-   - Or click **Download** and use **Upload files** in the `data` folder.
-4. Back in the site, click **I've committed these changes**. The site and the History tab update after the next deploy, about a minute later.
+1. **Make your changes on the site.** Update statuses, scan dates or notes, or save a route plan. A yellow bar shows how many changes haven't been saved yet.
+2. **Click Save to GitHub.** Type your name the first time; it's recorded in the change log. Check the commit message.
+3. **Copy the new file into GitHub.**
+   1. Click **Copy contents**, then **Open status.json on GitHub to edit**.
+   2. In GitHub's editor, select everything (Ctrl+A, or Cmd+A on a Mac), paste, and click **Commit changes**.
+   3. Do the same for `plans.json` if it's listed.
 
-The site fetches the latest committed file before building your copy, so you won't overwrite a colleague's earlier save. If two people save within the same minute, the second commit wins for any station both changed; both changes still appear in the audit log.
+   If copying doesn't work, click **Download** instead. Then use **Upload files** in the `data` folder on GitHub.
+4. **Confirm on the site.** Click **I've committed these changes**, then confirm.
+5. **Refresh.** About a minute later the site has republished. Refresh the page to see the change.
+
+The site fetches the latest saved file before building yours, so you won't overwrite an earlier save.
+
+---
+
+## Seeing who changed what
+
+- **History tab:** every saved change, newest first, with a filter box.
+- **Station card:** each card shows the latest changes for that station.
+- **`data/audit-log.csv`:** the full log. You can download it and open it in Excel.
+- **GitHub's commit list:** https://github.com/jasdeepsaini96/vat-planner-ee14175180af/commits/main is GitHub's own record of every change to every file. It can't be edited after the fact.
+
+---
+
+## What happens when you save
+
+Every commit to `main` runs the **Check, log and publish** workflow (`.github/workflows/deploy.yml`):
+
+1. **Checks the data.** Unknown station codes, invalid statuses, bad dates or broken files stop the run. The site keeps showing the last good version.
+2. **Logs the changes.** It compares the commit with the one before and adds the differences to `data/audit-log.csv`.
+3. **Publishes the site** to GitHub Pages.
+
+You can watch it under the **Actions** tab. A green tick means it worked.
+
+A red cross means the save was rejected. Click the run, then the **Check data and record changes** step, to see which station is affected and why. Fix the file and commit again.
+
+---
+
+## How it was set up
+
+This has already been done for this repository. These are the steps for reference, or for setting up a copy.
+
+1. **Upload the files.** Upload all of the project's files, including the hidden `.github` folder.
+2. **Allow the workflow to save the change log.** Go to **Settings → Actions → General → Workflow permissions** and choose **Read and write permissions**.
+3. **Switch on Pages.** Go to **Settings → Pages → Build and deployment → Source** and choose **GitHub Actions**.
+4. **Publish.** On the **Actions** tab, open **Check, log and publish**, then click **Run workflow**.
+5. **Check the link.** The site address appears under **Settings → Pages**.
+
+The site works out its repository from its own address. If you move it to a custom domain, set `repo: "owner/name"` in `config.js`.
+
+---
+
+## Run it privately with Codespaces
+
+You can run the site without Pages, visible only to you while you're signed in to GitHub.
+
+1. On the repository page, click **Code → Codespaces → Create codespace on main**.
+2. In the terminal at the bottom, type `python3 -m http.server 8000` and press Enter.
+3. Click **Open in Browser** in the pop-up.
+
+To run it on your own computer instead, download the repository and run the same command in its folder. Then open http://localhost:8000. Opening `index.html` directly from the folder won't load the data.
+
+---
 
 ## Map layers
 
-- Basemap: OpenStreetMap standard tiles, toned down (and darkened in dark mode) so the stations stand out.
-- Railway lines: OpenRailwayMap standard layer, on by default (toggle in the legend).
+| Layer | Source | Notes |
+|---|---|---|
+| Background map | [OpenStreetMap](https://www.openstreetmap.org/copyright) standard tiles | Greyed out so stations stand out, and darkened in dark mode |
+| Railway lines | [OpenRailwayMap](https://www.openrailwaymap.org/) standard style | Shows all rail lines, not only Network Rail's: main lines, branches, sidings, Underground, tram and heritage |
 
-Both are free, volunteer-run services with fair-use policies: fine for a small team, but OpenRailwayMap asks commercial projects to run their own tile server, and either may limit or block heavy use. The page sends only the site's domain (not the full address) when asking for tiles, which both services require. URLs and credits are in `config.js` if you want to swap providers.
+Both are free services run by volunteers, with fair-use rules. That's fine for one person or a small team, but there are two catches:
+
+- **Commercial use:** OpenRailwayMap asks commercial projects to run their own map server, and it can block use it considers commercial.
+- **No guarantee:** neither service promises to be available.
+
+If the railway lines stop appearing, the fix is to draw the track from Network Rail's open data instead. Layer addresses and credits are in `config.js`.
+
+---
 
 ## Planning assumptions
 
-Defaults come from `network_rail_scanning_cost_model.pdf`: two teams of two, £180 day rate, £30 subsistence, £100 hotel per person per night, £30 fuel per van-day, £15 parking per station-day, £104,000 of scanners, vans and insurance. Scan days by DfT category: A 2, B 1.25, C 1, D–F 0.5 (the model allows up to 3 for large and 2 for medium stations). Drive times are straight-line distance × 1.25 at 35 mph plus 15 minutes per stop. Each person can change these under **Programme → Assumptions**; they stay in their browser.
+Defaults come from the scanning cost model (`network_rail_scanning_cost_model.pdf`):
+
+| Item | Default |
+|---|---|
+| Teams | 2 teams of 2 people, from March 2027 |
+| Day rate | £180 per person |
+| Subsistence | £30 per person per day |
+| Hotel | £100 per person per night |
+| Fuel | £30 per van per day |
+| Parking | £15 per station-day |
+| Equipment | £104,000 for scanners, vans and insurance |
+| Scan days by DfT category | A 2, B 1.25, C 1, D–F 0.5 |
+| Driving | Straight-line distance × 1.25 at 35 mph, plus 15 minutes per stop |
+
+The cost model allows up to 3 scan days for large stations and 2 for medium ones. The defaults are set lower so all 250 fit into the model's 320 team-days.
+
+You can change any of these under **Programme → Assumptions**. Changes stay in your browser only. Use the Google Maps link on each day to check real driving times.
+
+---
 
 ## Files
 
 ```
-index.html               page
-config.js                repository name and map layer settings
-assets/app.js            all app logic
-assets/style.css         styles
-data/                    stations, statuses, plans, audit log
-scripts/audit.mjs        validation and audit logging (Node 20, no dependencies)
-.github/workflows/deploy.yml   runs the audit and publishes to Pages
+index.html                     the page
+config.js                      map layers and (optional) repository name
+assets/app.js                  all app logic
+assets/style.css               styles
+data/                          stations, statuses, plans, change log
+scripts/audit.mjs              data checks and change logging (Node 20, no dependencies)
+.github/workflows/deploy.yml   runs the checks and publishes to GitHub Pages
 ```
