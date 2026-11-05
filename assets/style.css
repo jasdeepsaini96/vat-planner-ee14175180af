@@ -130,8 +130,9 @@ details summary{cursor:pointer;font-weight:600}
 .leaflet-control-attribution a{color:var(--muted)!important}
 .leaflet-tooltip{background:var(--ink);color:var(--panel);border:0;border-radius:4px;font-weight:600;box-shadow:none}
 .leaflet-tooltip-top:before{border-top-color:var(--ink)}
-.rail-tiles{filter:saturate(.85)}
-@media (prefers-color-scheme: dark){.rail-tiles{filter:saturate(.9) brightness(1.1)}}
+.base-tiles{filter:grayscale(.75) contrast(.92) brightness(1.04)}
+@media (prefers-color-scheme: dark){.base-tiles{filter:grayscale(.8) invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
+.rail-tiles{filter:saturate(1.1)}
 .seq-icon{display:grid;place-items:center;border-radius:50%;color:#fff;font-family:var(--f-mono);font-size:10px;font-weight:700;border:2px solid var(--panel)}
 .base-icon{display:grid;place-items:center;border-radius:3px;color:#fff;font-family:var(--f-display);font-size:11px;font-weight:700;border:2px solid var(--panel)}
 

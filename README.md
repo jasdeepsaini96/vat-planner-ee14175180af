@@ -82,10 +82,10 @@ The site fetches the latest committed file before building your copy, so you won
 
 ## Map layers
 
-- Basemap: CARTO light/dark tiles from OpenStreetMap data.
+- Basemap: OpenStreetMap standard tiles, toned down (and darkened in dark mode) so the stations stand out.
 - Railway lines: OpenRailwayMap standard layer, on by default (toggle in the legend).
 
-Both are free community services with fair-use policies, fine for a small team. URLs and credits are in `config.js` if you want to swap providers.
+Both are free, volunteer-run services with fair-use policies: fine for a small team, but OpenRailwayMap asks commercial projects to run their own tile server, and either may limit or block heavy use. The page sends only the site's domain (not the full address) when asking for tiles, which both services require. URLs and credits are in `config.js` if you want to swap providers.
 
 ## Planning assumptions
 

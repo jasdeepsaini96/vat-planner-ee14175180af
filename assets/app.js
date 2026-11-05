@@ -150,12 +150,12 @@ map.attributionControl.setPrefix(false);
 let baseTiles = null;
 function setBase() {
   if (baseTiles) baseTiles.remove();
-  baseTiles = L.tileLayer(dark.matches ? CFG.basemapDark : CFG.basemapLight, { subdomains: "abcd", maxZoom: 19, attribution: CFG.basemapAttribution }).addTo(map);
+  baseTiles = L.tileLayer(CFG.basemap, { maxZoom: 19, className: "base-tiles", attribution: CFG.basemapAttribution }).addTo(map);
   baseTiles.bringToBack();
 }
 setBase();
 dark.addEventListener("change", () => { setBase(); styleMarkers(); drawRoute() });
-const railTiles = L.tileLayer(CFG.railway, { subdomains: "abc", maxZoom: 19, opacity: 0.85, className: "rail-tiles", attribution: CFG.railwayAttribution });
+const railTiles = L.tileLayer(CFG.railway, { maxZoom: 19, opacity: 0.85, className: "rail-tiles", attribution: CFG.railwayAttribution });
 if (ls.get("showRail", true)) railTiles.addTo(map);
 $("showRail").checked = ls.get("showRail", true);
 $("showRail").onchange = e => { ls.set("showRail", e.target.checked); e.target.checked ? railTiles.addTo(map) : railTiles.remove() };
