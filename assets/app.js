@@ -165,8 +165,8 @@ const MAP_STYLES = {
   grey: { name: "Light grey", sea: "#cfdbe2", land: "#eef0ec", coast: "#a9b4ac", rail: "#3d4852" },
   night: { name: "Night", sea: "#0b2338", land: "#1d2830", coast: "#2c4f6b", rail: "#9fb6c8" }
 };
-let mapStyle = ls.get("mapStyle2", "auto");
-const curStyle = () => MAP_STYLES[mapStyle] || (dark.matches ? MAP_STYLES.night : MAP_STYLES.atlas);
+let mapStyle = ls.get("mapStyle3", "atlas");
+const curStyle = () => MAP_STYLES[mapStyle] || MAP_STYLES.atlas;
 let GEO = null;
 const railWeight = () => { const z = map.getZoom(); return z < 7 ? 0.8 : z < 9 ? 1.1 : z < 11 ? 1.5 : 2 };
 function drawBase() {
@@ -177,9 +177,9 @@ function drawBase() {
   L.polyline(GEO.rail.map(l => l.map(([x, y]) => [y, x])), { renderer: baseRenderer, interactive: false, color: S.rail, weight: railWeight(), opacity: 0.9, lineJoin: "round" }).addTo(railLayer);
 }
 dark.addEventListener("change", () => { drawBase(); styleMarkers(); drawRoute() });
-$("mapStyle").innerHTML = `<option value="auto">Automatic (Atlas / Night in dark mode)</option>` + Object.entries(MAP_STYLES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
-$("mapStyle").value = MAP_STYLES[mapStyle] ? mapStyle : "auto";
-$("mapStyle").onchange = e => { mapStyle = e.target.value; ls.set("mapStyle2", mapStyle); drawBase() };
+$("mapStyle").innerHTML = Object.entries(MAP_STYLES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+$("mapStyle").value = MAP_STYLES[mapStyle] ? mapStyle : "atlas";
+$("mapStyle").onchange = e => { mapStyle = e.target.value; ls.set("mapStyle3", mapStyle); drawBase() };
 drawBase();
 map.on("zoomend", () => railLayer.eachLayer(l => l.setStyle({ weight: railWeight() })));
 if (ls.get("showRail", true)) railLayer.addTo(map);

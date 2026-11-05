@@ -132,7 +132,7 @@ To run it on your own computer instead, download the repository and run the same
 
 The map is drawn entirely from `data/gb-map.json`. That file holds the coastline of Great Britain and its railway network from [Natural Earth](https://www.naturalearthdata.com/) (public domain). Only Britain is shown: England, Scotland and Wales. The site uses no outside map service, so the map always loads and never needs a key.
 
-Choose a look under **Map style** in the legend: Atlas (default), Sea blue, Survey, Light grey or Night. Automatic switches to Night when your computer is in dark mode. Your choice is remembered in your browser.
+Choose a look under **Map style** in the legend: Atlas (default), Sea blue, Survey, Light grey or Night. Atlas is used even when your computer is in dark mode; pick Night if you want a dark map. Your choice is remembered in your browser.
 
 The office (SE8 3DX, Deptford) appears on the map as **HQ**. It's the default start point for both teams in the route planner and the programme. You can still pick any station as a start point. To change the office, edit `office` in `config.js`.
 
