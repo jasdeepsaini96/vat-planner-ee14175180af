@@ -1,0 +1,57 @@
+name: Check, log and publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # commit the audit log
+  pages: write      # publish to GitHub Pages
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check data and record changes in the audit log
+        run: node scripts/audit.mjs "${{ github.event.before }}" "${{ github.sha }}"
+
+      - name: Commit the audit log
+        run: |
+          if ! git diff --quiet -- data/audit-log.csv; then
+            git config user.name "audit-log[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/audit-log.csv
+            git commit -m "Audit log for ${GITHUB_SHA::7}"
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

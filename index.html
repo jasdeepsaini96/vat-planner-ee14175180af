@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Station Scan Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="rail-head">
+      <div class="brand"><h1>Station Scan Planner</h1><span class="sync" id="sync">Loading…</span></div>
+      <div class="sub">Virtual Accessibility Tours · ITT 20054 · 250 baseline stations (Appendix A)</div>
+      <div class="stack" id="stack" aria-hidden="true"></div>
+      <div class="counts" id="counts"></div>
+    </div>
+    <div class="pending" id="pending" hidden>
+      <span class="grow" id="pendingText"></span>
+      <button class="btn sm primary" id="openSave">Save to GitHub</button>
+      <button class="btn sm" id="discard">Discard</button>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-stations" aria-selected="true">Stations</button>
+      <button role="tab" id="tab-route" aria-selected="false">Route <span class="n" id="routeN">0</span></button>
+      <button role="tab" id="tab-prog" aria-selected="false">Programme</button>
+      <button role="tab" id="tab-hist" aria-selected="false">History</button>
+    </div>
+
+    <section class="pane" id="pane-stations">
+      <div class="row"><input type="search" id="q" class="grow" placeholder="Search name, TLC or operator" aria-label="Search stations"></div>
+      <div><div class="lbl">Show status</div><div class="chips" id="fStatus"></div></div>
+      <div><div class="lbl">DfT category</div><div class="chips" id="fCat"></div></div>
+      <div class="row">
+        <select id="fToc" class="grow" aria-label="Operator"></select>
+        <label class="row tight"><input type="checkbox" id="fOnlyRoute"> Route only</label>
+      </div>
+      <div class="row">
+        <span class="hint grow" id="shownN"></span>
+        <button class="btn sm" id="addShown">Add shown to route</button>
+      </div>
+      <div class="list" id="list"></div>
+      <p class="hint">Click a station to open its card. Shift-click a station on the map to add or remove it from the route.</p>
+    </section>
+
+    <section class="pane" id="pane-route" hidden>
+      <div class="card">
+        <div class="row"><div class="lbl grow">Stations in route</div><button class="btn sm" id="clearRoute">Clear</button></div>
+        <div class="stops" id="routeChips"></div>
+        <div class="hint" id="routeEmpty">Add stations from the list, a station card, or shift-click on the map.</div>
+      </div>
+      <div class="card">
+        <div class="row"><span class="lbl grow">Teams</span><div class="seg" id="teamsSeg"><button data-v="1">1 team</button><button data-v="2">2 teams</button></div></div>
+        <div class="row"><span class="teamtag t1">Team 1</span><span class="hint">starts from</span><select id="base1" class="grow" aria-label="Team 1 base"></select></div>
+        <div class="row" id="base2row"><span class="teamtag t2">Team 2</span><span class="hint">starts from</span><select id="base2" class="grow" aria-label="Team 2 base"></select></div>
+        <div class="row"><span class="lbl grow">First scan day</span><input type="date" id="startDate"></div>
+        <div class="row"><span class="lbl grow">Optimise for</span><div class="seg" id="modeSeg"><button data-v="cheap">Lowest cost</button><button data-v="fast">Fewest days</button></div></div>
+        <button class="btn primary" id="plan">Plan best route</button>
+      </div>
+      <div id="routeOut"></div>
+      <div class="card">
+        <div class="lbl">Saved plans</div>
+        <div class="row"><input type="text" id="planName" class="grow" placeholder="Plan name, e.g. Kent loop wk 1" aria-label="Plan name"><button class="btn" id="savePlan">Save plan</button></div>
+        <div id="plans"></div>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-prog" hidden>
+      <div class="card">
+        <div class="lbl">Cost model scenario</div>
+        <div class="hint">Two teams of two from early March 2027. Tranche 1: 100 stations live by June (target: 100 scanned by end of May). Tranche 2: all 250 live by October. About 320 team-days are available, so routes must cluster.</div>
+        <div class="row"><span class="teamtag t1">Team 1</span><span class="hint">base</span><select id="pbase1" class="grow" aria-label="Programme Team 1 base"></select></div>
+        <div class="row"><span class="teamtag t2">Team 2</span><span class="hint">base</span><select id="pbase2" class="grow" aria-label="Programme Team 2 base"></select></div>
+        <div class="row"><button class="btn primary" id="buildProg">Build programme</button><button class="btn" id="showMonths">Colour map by month</button></div>
+      </div>
+      <div id="progOut"></div>
+      <details class="card">
+        <summary>Assumptions (used by route and programme)</summary>
+        <div class="assume" id="assume"></div>
+        <div class="hint">Defaults from the cost model: £180 day rate, £30 subsistence, £100 hotel per person per night, £30 fuel per van-day, £15 parking per station day. Small stations take 1 day and cluster stations half a day; large and medium are set to 2 and 1.25 days so the 250 fit the model's 320 team-days (the model allows up to 3 and 2). Drive times use straight-line distance × road factor at an average speed; check each day in Google Maps. These settings are kept in your browser only.</div>
+        <button class="btn sm" id="resetAssume">Reset to defaults</button>
+      </details>
+    </section>
+
+    <section class="pane" id="pane-hist" hidden>
+      <div class="hint">Every saved change is logged by the repository's audit workflow: who committed it, when, and the old and new value. Unsaved changes in your browser don't appear here until they're committed.</div>
+      <div class="row"><input type="search" id="hq" class="grow" placeholder="Filter by station, person or field" aria-label="Filter history"></div>
+      <div id="histOut"></div>
+    </section>
+  </aside>
+
+  <div class="mapwrap">
+    <div id="map" aria-label="Map of baseline stations"></div>
+    <div class="float legend">
+      <label class="lbl" for="colourBy">Colour by</label>
+      <select id="colourBy"><option value="status">Scan status</option><option value="dft">DfT category</option><option value="month">Programme month</option><option value="team">Programme team</option></select>
+      <div class="items" id="legendItems"></div>
+      <label class="row tight"><input type="checkbox" id="showNames" checked> Station names</label>
+      <label class="row tight"><input type="checkbox" id="showRail" checked> Railway lines</label>
+    </div>
+    <div class="float detail" id="detail" hidden></div>
+  </div>
+</div>
+
+<div class="modal" id="saveModal" hidden role="dialog" aria-modal="true" aria-labelledby="saveTitle">
+  <div class="modal-box">
+    <button class="x" id="saveX" aria-label="Close">×</button>
+    <h2 id="saveTitle">Save changes to GitHub</h2>
+    <div id="saveSummary"></div>
+    <div class="row"><label class="lbl grow" for="myName">Your name (recorded in the log)</label><input type="text" id="myName" placeholder="e.g. Jas Saini"></div>
+    <div><label class="lbl" for="commitMsg">Commit message</label><textarea id="commitMsg" rows="2"></textarea></div>
+    <div id="saveFiles"></div>
+    <ol class="steps">
+      <li>Copy the file contents (or download the file).</li>
+      <li>Open the file on GitHub, select all, paste, then <b>Commit changes</b> with the message above. Downloaded files go through <b>Upload files</b> in the <code>data</code> folder.</li>
+      <li>The site rebuilds in about a minute and the change appears in History.</li>
+    </ol>
+    <div class="row"><button class="btn primary" id="committed">I've committed these changes</button><span class="hint" id="saveNote"></span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
