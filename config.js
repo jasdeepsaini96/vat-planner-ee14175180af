@@ -3,7 +3,7 @@
 //       Leave empty to detect it from a github.io address automatically.
 // branch: the branch GitHub Pages deploys from.
 window.SSP_CONFIG = {
-  repo: "jasdeepsaini96/stations.github.io",
+  repo: "",
   branch: "main",
   // Map layers. Both are free community services; keep usage to your team.
   basemapLight: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
