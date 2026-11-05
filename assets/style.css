@@ -151,3 +151,5 @@ details summary{cursor:pointer;font-weight:600}
 .hist td{vertical-align:top}
 .hist .when{white-space:nowrap;color:var(--muted)}
 code{font-family:var(--f-mono);font-size:12px}
+
+.office-icon{display:grid;place-items:center;width:30px;height:20px;border-radius:4px;background:var(--ink);color:var(--panel);font-family:var(--f-display);font-weight:700;font-size:11.5px;letter-spacing:.04em;border:2px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.3)}

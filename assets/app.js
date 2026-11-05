@@ -127,6 +127,11 @@ function bestPlan(base, tlcs, start, m) {
 }
 function splitTeams(tlcs, b1, b2) {
   let c = [{ lat: BY[b1].lat, lon: BY[b1].lon }, { lat: BY[b2].lat, lon: BY[b2].lon }], asg = {};
+  if (hav(c[0], c[1]) < 5 && tlcs.length > 1) {
+    const far = (from, list) => list.reduce((a, t) => hav(BY[t], from) > hav(BY[a], from) ? t : a, list[0]);
+    const s1 = far(c[0], tlcs), s2 = far(BY[s1], tlcs);
+    c = [{ lat: BY[s1].lat, lon: BY[s1].lon }, { lat: BY[s2].lat, lon: BY[s2].lon }];
+  }
   const w = t => scanDays(t);
   for (let it = 0; it < 6; it++) {
     tlcs.forEach(t => { asg[t] = hav(BY[t], c[0]) <= hav(BY[t], c[1]) ? 0 : 1 });
@@ -153,15 +158,29 @@ map.attributionControl.setPrefix(false);
 map.attributionControl.addAttribution("Coastline &amp; railways: Natural Earth");
 const baseRenderer = L.canvas({ padding: 0.3 });
 const landLayer = L.layerGroup().addTo(map), railLayer = L.layerGroup();
+const MAP_STYLES = {
+  sea: { name: "Sea blue", sea: "#a8d1ec", land: "#f6f4ee", coast: "#7eaecd", rail: "#444b55" },
+  ordnance: { name: "Survey", sea: "#d4ecfa", land: "#ffffff", coast: "#8ec3e3", rail: "#1a1a1a" },
+  atlas: { name: "Atlas", sea: "#86bddf", land: "#efe7d4", coast: "#5f97bf", rail: "#6a4e3b" },
+  grey: { name: "Light grey", sea: "#cfdbe2", land: "#eef0ec", coast: "#a9b4ac", rail: "#3d4852" },
+  night: { name: "Night", sea: "#0b2338", land: "#1d2830", coast: "#2c4f6b", rail: "#9fb6c8" }
+};
+let mapStyle = ls.get("mapStyle", "auto");
+const curStyle = () => MAP_STYLES[mapStyle] || (dark.matches ? MAP_STYLES.night : MAP_STYLES.sea);
 let GEO = null;
 const railWeight = () => { const z = map.getZoom(); return z < 7 ? 0.8 : z < 9 ? 1.1 : z < 11 ? 1.5 : 2 };
 function drawBase() {
+  const S = curStyle(); map.getContainer().style.background = S.sea;
   if (!GEO) return;
   landLayer.clearLayers(); railLayer.clearLayers();
-  L.polygon(GEO.land.map(r => r.map(([x, y]) => [y, x])), { renderer: baseRenderer, interactive: false, color: css("--coast"), weight: 0.8, fillColor: css("--land"), fillOpacity: 1 }).addTo(landLayer);
-  L.polyline(GEO.rail.map(l => l.map(([x, y]) => [y, x])), { renderer: baseRenderer, interactive: false, color: css("--rail"), weight: railWeight(), opacity: 0.9, lineJoin: "round" }).addTo(railLayer);
+  L.polygon(GEO.land.map(r => r.map(([x, y]) => [y, x])), { renderer: baseRenderer, interactive: false, color: S.coast, weight: 0.8, fillColor: S.land, fillOpacity: 1 }).addTo(landLayer);
+  L.polyline(GEO.rail.map(l => l.map(([x, y]) => [y, x])), { renderer: baseRenderer, interactive: false, color: S.rail, weight: railWeight(), opacity: 0.9, lineJoin: "round" }).addTo(railLayer);
 }
 dark.addEventListener("change", () => { drawBase(); styleMarkers(); drawRoute() });
+$("mapStyle").innerHTML = `<option value="auto">Automatic (Sea blue / Night in dark mode)</option>` + Object.entries(MAP_STYLES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+$("mapStyle").value = MAP_STYLES[mapStyle] ? mapStyle : "auto";
+$("mapStyle").onchange = e => { mapStyle = e.target.value; ls.set("mapStyle", mapStyle); drawBase() };
+drawBase();
 map.on("zoomend", () => railLayer.eachLayer(l => l.setStyle({ weight: railWeight() })));
 if (ls.get("showRail", true)) railLayer.addTo(map);
 $("showRail").checked = ls.get("showRail", true);
@@ -214,6 +233,7 @@ function placeLabels() {
   const order = vis.slice().sort((a, b) => (inR.has(b.s.tlc) - inR.has(a.s.tlc)) || a.s.dft.localeCompare(b.s.dft) || (b.s.footfall - a.s.footfall));
   const mr = map.getContainer().getBoundingClientRect();
   const placed = [...document.querySelectorAll(".mapwrap .float:not([hidden])")].map(el => { const r = el.getBoundingClientRect(); return { x1: r.left - mr.left, y1: r.top - mr.top, x2: r.right - mr.left, y2: r.bottom - mr.top } }).filter(r => r.x2 > r.x1);
+  if (BY.OFFICE) { const q = map.latLngToContainerPoint([BY.OFFICE.lat, BY.OFFICE.lon]); placed.push({ x1: q.x - 18, y1: q.y - 13, x2: q.x + 18, y2: q.y + 13 }) }
   const ov = (a, b) => a.x1 < b.x2 + 2 && a.x2 + 2 > b.x1 && a.y1 < b.y2 + 1 && a.y2 + 1 > b.y1;
   const short = z < 7.5; // at national view, use TLC-free compact names to fit more
   for (const o of order) {
@@ -396,7 +416,7 @@ $("committed").onclick = () => {
 /* ---------- route tab ---------- */
 function saveRoute() { ls.set("route", route); routeRes = null; refresh(); renderRoute() }
 function toggleRoute(t) { const i = route.indexOf(t); i < 0 ? route.push(t) : route.splice(i, 1); saveRoute() }
-function stationOptions(sel) { return ST.slice().sort((a, b) => a.name.localeCompare(b.name)).map(s => `<option value="${s.tlc}" ${s.tlc === sel ? "selected" : ""}>${esc(s.name)} (${s.tlc})</option>`).join("") }
+function stationOptions(sel) { return (BY.OFFICE ? `<option value="OFFICE" ${sel === "OFFICE" ? "selected" : ""}>${esc(BY.OFFICE.name)}</option><option disabled>──────────</option>` : "") + ST.slice().sort((a, b) => a.name.localeCompare(b.name)).map(s => `<option value="${s.tlc}" ${s.tlc === sel ? "selected" : ""}>${esc(s.name)} (${s.tlc})</option>`).join("") }
 function renderRoute() {
   $("routeN").textContent = route.length;
   $("routeEmpty").hidden = route.length > 0;
@@ -412,7 +432,7 @@ $("routeChips").onclick = e => { const c = e.target.closest(".tlc"); if (c) togg
 $("clearRoute").onclick = () => { route = []; saveRoute() };
 $("teamsSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; teams = +b.dataset.v; ls.set("teams", teams); routeRes = null; renderRoute() };
 $("modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; mode = b.dataset.v; ls.set("mode", mode); if (routeRes) planRoute(); else renderRoute() };
-["base1", "base2"].forEach(id => $(id).onchange = e => { ls.set(id, e.target.value); routeRes = null; renderRoute() });
+["base1", "base2"].forEach(id => $(id).onchange = e => { ls.set(id + "v2", e.target.value); routeRes = null; renderRoute() });
 $("startDate").onchange = e => { ls.set("start", e.target.value); routeRes = null; renderRoute() };
 $("plan").onclick = planRoute;
 function planRoute() {
@@ -512,7 +532,7 @@ function buildProgramme() {
 }
 $("buildProg").onclick = () => { buildProgramme(); toast("Programme rebuilt") };
 $("showMonths").onclick = () => { if (!prog) buildProgramme(); colourBy = "month"; $("colourBy").value = "month"; styleMarkers(); map.fitBounds([[50.0, -5.8], [57.6, 1.8]]) };
-["pbase1", "pbase2"].forEach(id => $(id).onchange = e => { ls.set(id, e.target.value); buildProgramme() });
+["pbase1", "pbase2"].forEach(id => $(id).onchange = e => { ls.set(id + "v2", e.target.value); buildProgramme() });
 function renderProg() {
   if (!prog) { $("progOut").innerHTML = ""; return }
   const p = prog, cost = p.r1.cost.total + p.r2.cost.total, td = p.r1.nDays + p.r2.nDays, fieldTotal = cost + FIXED_KIT;
@@ -552,7 +572,7 @@ function renderProg() {
     <div class="row"><label class="sub" for="lm${n}">Load a month into the route planner</label><select id="lm${n}">${MONTHS.map(m => `<option value="${m}">${MONTH_NAME[m]} · ${g.filter(t => p.dates[t] && p.dates[t].startsWith(m)).length} stations</option>`).join("")}</select><button class="btn sm" data-team="${n}">Load</button></div></div>`).join("")}`;
   $("progOut").querySelectorAll("button[data-team]").forEach(b => b.onclick = () => {
     const k = +b.dataset.team - 1, m = $("lm" + b.dataset.team).value, r = k ? p.r2 : p.r1;
-    route = r.order.filter(t => p.dates[t] && p.dates[t].startsWith(m)); teams = 1; $("base1").value = k ? p.b2 : p.b1; ls.set("base1", $("base1").value);
+    route = r.order.filter(t => p.dates[t] && p.dates[t].startsWith(m)); teams = 1; $("base1").value = k ? p.b2 : p.b1; ls.set("base1v2", $("base1").value);
     const first = r.days.find(d => d.date.startsWith(m)); if (first) $("startDate").value = first.date;
     saveRoute(); selectTab("route"); planRoute(); toast(`Loaded Team ${k + 1} ${MONTH_NAME[m]}: ${route.length} stations`)
   });
@@ -611,6 +631,13 @@ async function reloadData() {
     $("sync").innerHTML = '<span class="warn">Open this through a web server (see README), not as a file.</span>'; return;
   }
   BY = Object.fromEntries(ST.map(s => [s.tlc, s]));
+  const OFF = CFG.office;
+  if (OFF && isFinite(OFF.lat) && isFinite(OFF.lon)) {
+    BY.OFFICE = { tlc: "OFFICE", name: OFF.name || "Office", lat: +OFF.lat, lon: +OFF.lon, dft: "C" };
+    L.marker([BY.OFFICE.lat, BY.OFFICE.lon], { zIndexOffset: 1000, icon: L.divIcon({ className: "", html: `<div class="office-icon" title="${esc(BY.OFFICE.name)}">HQ</div>`, iconSize: [30, 20], iconAnchor: [15, 10] }) })
+      .bindTooltip(esc(BY.OFFICE.name), { direction: "top", offset: [0, -10] }).addTo(map);
+  }
+  const DEF = BY.OFFICE ? "OFFICE" : "BHM", DEF2 = BY.OFFICE ? "OFFICE" : "LBG";
   route = route.filter(t => BY[t]);
   ST.forEach(s => {
     const m = L.circleMarker([s.lat, s.lon], { radius: 4, weight: 1.5 });
@@ -618,10 +645,10 @@ async function reloadData() {
     m.on("click", e => { if (e.originalEvent.shiftKey) toggleRoute(s.tlc); else showDetail(s.tlc) });
     markers[s.tlc] = m;
   });
-  $("base1").innerHTML = stationOptions(ls.get("base1", "BHM"));
-  $("base2").innerHTML = stationOptions(ls.get("base2", "LBG"));
-  $("pbase1").innerHTML = stationOptions(ls.get("pbase1", "BHM"));
-  $("pbase2").innerHTML = stationOptions(ls.get("pbase2", "LBG"));
+  $("base1").innerHTML = stationOptions(ls.get("base1v2", DEF));
+  $("base2").innerHTML = stationOptions(ls.get("base2v2", DEF2));
+  $("pbase1").innerHTML = stationOptions(ls.get("pbase1v2", DEF));
+  $("pbase2").innerHTML = stationOptions(ls.get("pbase2v2", DEF2));
   $("startDate").value = ls.get("start", "2027-03-01");
   renderFilters(); renderAssume(); refresh(); renderPlans();
   await reloadData();

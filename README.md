@@ -132,6 +132,10 @@ To run it on your own computer instead, download the repository and run the same
 
 The map is drawn entirely from `data/gb-map.json`. That file holds the coastline of Great Britain and its railway network from [Natural Earth](https://www.naturalearthdata.com/) (public domain). Only Britain is shown: England, Scotland and Wales. The site uses no outside map service, so the map always loads and never needs a key.
 
+Choose a look under **Map style** in the legend: Sea blue (default), Survey, Atlas, Light grey or Night. Automatic switches to Night when your computer is in dark mode. Your choice is remembered in your browser.
+
+The office (SE8 3DX, Deptford) appears on the map as **HQ**. It's the default start point for both teams in the route planner and the programme. You can still pick any station as a start point. To change the office, edit `office` in `config.js`.
+
 The railway layer shows the main network at national scale. Lines get slightly thicker as you zoom in, and you can switch them off in the legend. At city level it's simplified, and some short branches are missing. For full track detail, replace `data/gb-map.json` with Network Rail's open track data.
 
 ---
@@ -142,7 +146,7 @@ Defaults come from the scanning cost model (`network_rail_scanning_cost_model.pd
 
 | Item | Default |
 |---|---|
-| Teams | 2 teams of 2 people, from March 2027 |
+| Teams | 2 teams of 2 people, from March 2027, both starting from the office (SE8 3DX) |
 | Day rate | £180 per person |
 | Subsistence | £30 per person per day |
 | Hotel | £100 per person per night |

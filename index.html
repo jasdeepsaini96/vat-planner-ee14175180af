@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/style.css?v=4">
+<link rel="stylesheet" href="assets/style.css?v=5">
 </head>
 <body>
 <div class="app">
@@ -100,6 +100,8 @@
       <label class="lbl" for="colourBy">Colour by</label>
       <select id="colourBy"><option value="status">Scan status</option><option value="dft">DfT category</option><option value="month">Programme month</option><option value="team">Programme team</option></select>
       <div class="items" id="legendItems"></div>
+      <label class="lbl" for="mapStyle">Map style</label>
+      <select id="mapStyle"></select>
       <label class="row tight"><input type="checkbox" id="showNames" checked> Station names</label>
       <label class="row tight"><input type="checkbox" id="showRail" checked> Railway lines</label>
     </div>
@@ -125,8 +127,8 @@
 </div>
 
 <div class="toast" id="toast" hidden></div>
-<script src="config.js?v=4"></script>
+<script src="config.js?v=5"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="assets/app.js?v=4"></script>
+<script src="assets/app.js?v=5"></script>
 </body>
 </html>
