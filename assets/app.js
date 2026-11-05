@@ -7,10 +7,13 @@ const DFT_DESC = { A: "National hub", B: "Regional interchange", C: "Important f
 const SF_DESC = { A: "Compliant step-free access to all platforms", B1: "Partial step-free (category B1)", B2: "Partial step-free (category B2)", B3: "Partial step-free (category B3)", C: "No compliant step-free access" };
 const STATUSES = [["none", "Not scanned"], ["planned", "Planned"], ["scanned", "Scanned"], ["accepted", "Accepted / live"], ["hold", "On hold"]];
 const SLABEL = Object.fromEntries(STATUSES);
-const MONTHS = ["2027-03", "2027-04", "2027-05", "2027-06", "2027-07", "2027-08", "2027-09", "2027-10"];
-const MONTH_NAME = { "2027-03": "Mar", "2027-04": "Apr", "2027-05": "May", "2027-06": "Jun", "2027-07": "Jul", "2027-08": "Aug", "2027-09": "Sep", "2027-10": "Oct" };
-const TARGET_CUM = { "2027-03": 25, "2027-04": 60, "2027-05": 100, "2027-06": 130, "2027-07": 160, "2027-08": 190, "2027-09": 220, "2027-10": 250 };
-const MONTH_COL = ["#e8b04b", "#d9862f", "#c45a2c", "#9c3b4f", "#6f3a73", "#3f4d8f", "#2b77a8", "#2a9d8f"];
+// Scanning can start on 1 April 2027 (mobilisation in March).
+const PROG_START = "2027-04-01", PROG_END = "2027-10-29";
+const MONTHS = ["2027-04", "2027-05", "2027-06", "2027-07", "2027-08", "2027-09", "2027-10"];
+const MONTH_NAME = { "2027-04": "Apr", "2027-05": "May", "2027-06": "Jun", "2027-07": "Jul", "2027-08": "Aug", "2027-09": "Sep", "2027-10": "Oct" };
+// Cumulative targets: 100 scanned by end of May (cost model internal target), then the model's 30 a month to 250 in October.
+const TARGET_CUM = { "2027-04": 50, "2027-05": 100, "2027-06": 130, "2027-07": 160, "2027-08": 190, "2027-09": 220, "2027-10": 250 };
+const MONTH_COL = ["#d9862f", "#c45a2c", "#9c3b4f", "#6f3a73", "#3f4d8f", "#2b77a8", "#2a9d8f"];
 const DFT_COL = { A: "#5b2a86", B: "#8a4fb5", C: "#2b77a8", D: "#2a9d8f", E: "#7fb069", F: "#b5c99a" };
 const BANK_HOLS = new Set(["2027-01-01", "2027-03-26", "2027-03-29", "2027-05-03", "2027-05-31", "2027-08-30", "2027-12-27", "2027-12-28"]);
 const DEFAULTS = { dA: 2, dB: 1.25, dC: 1, dD: 0.5, dE: 0.5, dF: 0.5, dayLen: 9, onsite: 7, mph: 35, road: 1.25, hop: 0.25, crew: 2, rate: 180, subs: 30, hotel: 100, fuel: 30, park: 15 };
@@ -155,7 +158,7 @@ const GB_BOUNDS = L.latLngBounds([[49.7, -8.8], [61.0, 2.2]]);
 const map = L.map("map", { zoomSnap: 0.5, minZoom: 5, maxZoom: 16, maxBounds: GB_BOUNDS.pad(0.15), maxBoundsViscosity: 0.8 });
 map.fitBounds([[50.0, -5.8], [57.6, 1.8]]);
 map.attributionControl.setPrefix(false);
-map.attributionControl.addAttribution("Coastline &amp; railways: Natural Earth");
+map.attributionControl.addAttribution("Coastline: Natural Earth · Railways: Network Rail (OGL v3.0)");
 const baseRenderer = L.canvas({ padding: 0.3 });
 const landLayer = L.layerGroup().addTo(map), railLayer = L.layerGroup();
 const MAP_STYLES = {
@@ -186,6 +189,10 @@ if (ls.get("showRail", true)) railLayer.addTo(map);
 $("showRail").checked = ls.get("showRail", true);
 $("showRail").onchange = e => { ls.set("showRail", e.target.checked); e.target.checked ? railLayer.addTo(map) : railLayer.remove() };
 fetch("data/gb-map.json").then(r => r.json()).then(g => { GEO = g; drawBase() }).catch(() => { });
+const setTheme = d => { document.documentElement.dataset.theme = d ? "dark" : "light"; styleMarkers(); drawRoute() };
+$("darkPage").checked = ls.get("darkPage", false);
+document.documentElement.dataset.theme = $("darkPage").checked ? "dark" : "light";
+$("darkPage").onchange = e => { ls.set("darkPage", e.target.checked); setTheme(e.target.checked) };
 $("showNames").checked = ls.get("showNames", true);
 $("showNames").onchange = e => { ls.set("showNames", e.target.checked); placeLabels() };
 
@@ -433,11 +440,11 @@ $("clearRoute").onclick = () => { route = []; saveRoute() };
 $("teamsSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; teams = +b.dataset.v; ls.set("teams", teams); routeRes = null; renderRoute() };
 $("modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; mode = b.dataset.v; ls.set("mode", mode); if (routeRes) planRoute(); else renderRoute() };
 ["base1", "base2"].forEach(id => $(id).onchange = e => { ls.set(id + "v2", e.target.value); routeRes = null; renderRoute() });
-$("startDate").onchange = e => { ls.set("start", e.target.value); routeRes = null; renderRoute() };
+$("startDate").onchange = e => { ls.set("start2", e.target.value); routeRes = null; renderRoute() };
 $("plan").onclick = planRoute;
 function planRoute() {
   if (!route.length) return;
-  const start = $("startDate").value || "2027-03-01", b1 = $("base1").value, b2 = $("base2").value;
+  const start = $("startDate").value || PROG_START, b1 = $("base1").value, b2 = $("base2").value;
   const groups = teams === 2 ? splitTeams(route, b1, b2) : [route.slice()];
   routeRes = { start, teams: groups.map((g, i) => ({ g, base: i ? b2 : b1, res: bestPlan(i ? b2 : b1, g, start, mode) })) };
   renderRouteOut(); drawRoute();
@@ -522,8 +529,22 @@ $("savePlan").onclick = () => {
 /* ---------- programme ---------- */
 function buildProgramme() {
   const b1 = $("pbase1").value, b2 = $("pbase2").value;
-  const all = ST.map(s => s.tlc), [t1, t2] = splitTeams(all, b1, b2);
-  const r1 = bestPlan(b1, t1, "2027-03-01", "cheap").pick, r2 = bestPlan(b2, t2, "2027-03-01", "cheap").pick;
+  /* Tranche 1 first: the 100 quickest stations to scan (fewest scan days, then nearest the
+     office) are planned from 1 April for the fastest finish; the other 150 follow straight after. */
+  const all = ST.map(s => s.tlc), home = BY[b1];
+  const t1set = all.slice().sort((a, b) => scanDays(a) - scanDays(b) || hav(BY[a], home) - hav(BY[b], home)).slice(0, 100);
+  const rest = all.filter(t => !t1set.includes(t));
+  const [p1, p2] = splitTeams(t1set, b1, b2), [q1, q2] = splitTeams(rest, b1, b2);
+  const merge = (a, b) => ({ nDays: a.nDays + b.nDays, hotels: a.hotels + b.hotels, miles: a.miles + b.miles, finish: b.finish,
+    order: a.order.concat(b.order), days: a.days.concat(b.days), done: Object.assign({}, a.done, b.done),
+    cost: Object.fromEntries(Object.keys(a.cost).map(k => [k, a.cost[k] + b.cost[k]])) });
+  const phase = (base, first, second) => {
+    const a = bestPlan(base, first, PROG_START, "fast").pick;
+    const b = bestPlan(base, second, iso(nextWork(parse(a.finish))), "cheap").pick;
+    return merge(a, b);
+  };
+  const r1 = phase(b1, p1, q1), r2 = phase(b2, p2, q2);
+  const t1 = p1.concat(q1), t2 = p2.concat(q2);
   const dates = Object.assign({}, r1.done, r2.done), team = {}; t1.forEach(t => team[t] = 0); t2.forEach(t => team[t] = 1);
   const byMonth = {}; Object.values(dates).forEach(d => { const m = d.slice(0, 7); const k = MONTHS.includes(m) ? m : "later"; byMonth[k] = (byMonth[k] || 0) + 1 });
   const sorted = Object.values(dates).sort();
@@ -541,7 +562,8 @@ function renderProg() {
   let cp = 0; const rows = MONTHS.map(m => { cp += p.byMonth[m] || 0; return { m, proj: cp, target: TARGET_CUM[m], act: Object.entries(act).filter(([k]) => k <= m).reduce((a, [, v]) => a + v, 0) } });
   const W = 360, H = 170, pl = 30, pr = 8, pt = 10, pb = 22, x = i => pl + i * (W - pl - pr) / (MONTHS.length - 1), y = v => pt + (H - pt - pb) * (1 - v / 250);
   const line = k => rows.map((r, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(r[k]).toFixed(1)}`).join("");
-  const showAct = iso(new Date()) >= "2027-03-01";
+  const showAct = iso(new Date()) >= PROG_START;
+  let cap = 0; for (let d = parse(PROG_START); iso(d) <= PROG_END; d.setUTCDate(d.getUTCDate() + 1)) if (isWork(d)) cap += 2;
   const svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cumulative stations scanned: target versus projected">
     ${[0, 100, 250].map(v => `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl - 5}" y="${y(v) + 4}" text-anchor="end" font-size="10" fill="var(--muted)">${v}</text>`).join("")}
     ${MONTHS.map((m, i) => `<text x="${x(i)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--muted)">${MONTH_NAME[m]}</text>`).join("")}
@@ -554,7 +576,7 @@ function renderProg() {
     <div class="kv">
       <div><b class="${t1ok ? "ok" : "warn"}">${shortDate(p.first100).replace(" 2027", "")}</b><span>100th station scanned</span></div>
       <div><b class="${endOk ? "ok" : "warn"}">${shortDate(p.last).replace(" 2027", "")}</b><span>250th station scanned</span></div>
-      <div><b>${td}<span class="sub"> / 320</span></b><span>team-days used</span></div>
+      <div><b>${td}<span class="sub"> / ${cap}</span></b><span>team-days used</span></div>
       <div><b>${gbp(fieldTotal)}</b><span>field cost incl. kit</span></div>
       <div><b class="${fieldTotal <= MODEL_TOTAL ? "ok" : "warn"}">${fieldTotal <= MODEL_TOTAL ? "−" : "+"}${gbp(Math.abs(fieldTotal - MODEL_TOTAL))}</b><span>vs £306,700 budget</span></div>
       <div><b>${p.r1.hotels + p.r2.hotels}</b><span>hotel nights</span></div>
@@ -649,7 +671,7 @@ async function reloadData() {
   $("base2").innerHTML = stationOptions(ls.get("base2v2", DEF2));
   $("pbase1").innerHTML = stationOptions(ls.get("pbase1v2", DEF));
   $("pbase2").innerHTML = stationOptions(ls.get("pbase2v2", DEF2));
-  $("startDate").value = ls.get("start", "2027-03-01");
+  $("startDate").value = ls.get("start2", PROG_START);
   renderFilters(); renderAssume(); refresh(); renderPlans();
   await reloadData();
 })();

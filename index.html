@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/style.css?v=7">
+<link rel="stylesheet" href="assets/style.css?v=8">
 </head>
 <body>
 <div class="app">
@@ -73,7 +73,7 @@
     <section class="pane" id="pane-prog" hidden>
       <div class="card">
         <div class="lbl">Cost model scenario</div>
-        <div class="hint">Two teams of two from early March 2027. Tranche 1: 100 stations live by June (target: 100 scanned by end of May). Tranche 2: all 250 live by October. About 320 team-days are available, so routes must cluster.</div>
+        <div class="hint">Two teams of two. Mobilisation in March; scanning starts 1 April 2027. Tranche 1: 100 stations live by June (target: 100 scanned by end of May). Tranche 2: all 250 live by October. About 298 team-days are available from 1 April to 29 October, so routes must cluster.</div>
         <div class="row"><span class="teamtag t1">Team 1</span><span class="hint">base</span><select id="pbase1" class="grow" aria-label="Programme Team 1 base"></select></div>
         <div class="row"><span class="teamtag t2">Team 2</span><span class="hint">base</span><select id="pbase2" class="grow" aria-label="Programme Team 2 base"></select></div>
         <div class="row"><button class="btn primary" id="buildProg">Build programme</button><button class="btn" id="showMonths">Colour map by month</button></div>
@@ -82,7 +82,7 @@
       <details class="card">
         <summary>Assumptions (used by route and programme)</summary>
         <div class="assume" id="assume"></div>
-        <div class="hint">Defaults from the cost model: £180 day rate, £30 subsistence, £100 hotel per person per night, £30 fuel per van-day, £15 parking per station day. Small stations take 1 day and cluster stations half a day; large and medium are set to 2 and 1.25 days so the 250 fit the model's 320 team-days (the model allows up to 3 and 2). Drive times use straight-line distance × road factor at an average speed; check each day in Google Maps. These settings are kept in your browser only.</div>
+        <div class="hint">Defaults from the cost model: £180 day rate, £30 subsistence, £100 hotel per person per night, £30 fuel per van-day, £15 parking per station day. Small stations take 1 day and cluster stations half a day; large and medium are set to 2 and 1.25 days so the 250 fit the team-days available (the model allows up to 3 and 2). Drive times use straight-line distance × road factor at an average speed; check each day in Google Maps. These settings are kept in your browser only.</div>
         <button class="btn sm" id="resetAssume">Reset to defaults</button>
       </details>
     </section>
@@ -104,6 +104,7 @@
       <select id="mapStyle"></select>
       <label class="row tight"><input type="checkbox" id="showNames" checked> Station names</label>
       <label class="row tight"><input type="checkbox" id="showRail" checked> Railway lines</label>
+      <label class="row tight"><input type="checkbox" id="darkPage"> Dark page</label>
     </div>
     <div class="float detail" id="detail" hidden></div>
   </div>
@@ -127,8 +128,8 @@
 </div>
 
 <div class="toast" id="toast" hidden></div>
-<script src="config.js?v=7"></script>
+<script src="config.js?v=8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="assets/app.js?v=7"></script>
+<script src="assets/app.js?v=8"></script>
 </body>
 </html>

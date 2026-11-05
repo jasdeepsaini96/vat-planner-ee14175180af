@@ -17,7 +17,7 @@ Keep the site address to yourself. See [Who can see and change what](#who-can-se
 - **Filters:** show or hide stations by status, DfT category, operator or search term.
 - **Station cards:** Appendix A details for each station. You can set its status, scan date and notes, and see its change history.
 - **Route planner:** works for 1 or 2 teams. It finds the best visiting order, either lowest cost or fewest days. It gives a day-by-day plan with hotel nights, costs and a Google Maps link for each day.
-- **Programme:** the two-team scenario from the cost model. It checks 100 stations by end of May and all 250 by October against the £306,700 field budget.
+- **Programme:** the two-team scenario from the cost model. It starts scanning on 1 April 2027, scans the 100 quickest stations first, and checks 100 by end of May and all 250 by October against the £306,700 field budget.
 - **History:** who changed what and when, from what to what, with a link to each change on GitHub.
 
 ---
@@ -35,7 +35,7 @@ Everything is in the `data/` folder of this repository.
 
 Some settings stay in your own browser and are never uploaded: cost assumptions, the route you're building, map toggles and any unsaved edits. A different browser or computer starts with the defaults.
 
-Station positions were entered by hand for planning. They can be a few hundred metres out. Correct any of them in `data/stations.json`.
+Station positions were placed on the nearest Network Rail track line, normally within a few tens of metres of the real station. Correct any of them in `data/stations.json`.
 
 ---
 
@@ -130,13 +130,13 @@ To run it on your own computer instead, download the repository and run the same
 
 ## Map layers
 
-The map is drawn entirely from `data/gb-map.json`. That file holds the coastline of Great Britain and its railway network from [Natural Earth](https://www.naturalearthdata.com/) (public domain). Only Britain is shown: England, Scotland and Wales. The site uses no outside map service, so the map always loads and never needs a key.
+The map is drawn entirely from `data/gb-map.json`. That file holds the coastline of Great Britain from [Natural Earth](https://www.naturalearthdata.com/) (public domain) and Network Rail's own track reference lines from [openraildata/network-rail-gis](https://github.com/openraildata/network-rail-gis) (contains Network Rail information licensed under the Open Government Licence v3.0). Only Britain is shown: England, Scotland and Wales. The site uses no outside map service, so the map always loads and never needs a key.
 
-Choose a look under **Map style** in the legend: Atlas (default), Sea blue, Survey, Light grey or Night. Atlas is used even when your computer is in dark mode; pick Night if you want a dark map. Your choice is remembered in your browser.
+Choose a look under **Map style** in the legend: Atlas (default), Sea blue, Survey, Light grey or Night. Atlas is used even when your computer is in dark mode; pick Night if you want a dark map. The page itself is light by default; tick **Dark page** in the legend for a dark sidebar. Your choices are remembered in your browser.
 
 The office (SE8 3DX, Deptford) appears on the map as **HQ**. It's the default start point for both teams in the route planner and the programme. You can still pick any station as a start point. To change the office, edit `office` in `config.js`.
 
-The railway layer shows the main network at national scale. Lines get slightly thicker as you zoom in, and you can switch them off in the legend. At city level it's simplified, and some short branches are missing. For full track detail, replace `data/gb-map.json` with Network Rail's open track data.
+The railway layer shows one line per Network Rail route (engineer's line reference), simplified to 20 metres, so station dots sit on the track. Lines get slightly thicker as you zoom in, and you can switch them off in the legend. London Underground, trams and heritage lines aren't Network Rail track, so they aren't shown.
 
 ---
 
@@ -146,7 +146,9 @@ Defaults come from the scanning cost model (`network_rail_scanning_cost_model.pd
 
 | Item | Default |
 |---|---|
-| Teams | 2 teams of 2 people, from March 2027, both starting from the office (SE8 3DX) |
+| Teams | 2 teams of 2 people, both starting from the office (SE8 3DX) |
+| Scanning window | 1 April to 29 October 2027 (mobilisation in March): 149 working days per team, 298 team-days in total |
+| Order | Tranche 1 first: the 100 quickest stations to scan (fewest scan days, then nearest the office), then the remaining 150 |
 | Day rate | £180 per person |
 | Subsistence | £30 per person per day |
 | Hotel | £100 per person per night |
@@ -156,7 +158,7 @@ Defaults come from the scanning cost model (`network_rail_scanning_cost_model.pd
 | Scan days by DfT category | A 2, B 1.25, C 1, D–F 0.5 |
 | Driving | Straight-line distance × 1.25 at 35 mph, plus 15 minutes per stop |
 
-The cost model allows up to 3 scan days for large stations and 2 for medium ones. The defaults are set lower so all 250 fit into the model's 320 team-days.
+The cost model allows up to 3 scan days for large stations and 2 for medium ones. The defaults are set lower so all 250 fit into the 298 team-days available from 1 April.
 
 You can change any of these under **Programme → Assumptions**. Changes stay in your browser only. Use the Google Maps link on each day to check real driving times.
 

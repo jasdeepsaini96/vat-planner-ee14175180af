@@ -9,11 +9,6 @@
   --f-body:"Source Sans 3","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#11171d; --panel:#161e25; --ink:#e4e9ec; --muted:#97a5ad; --line:#2a3640; --soft:#1e2830;
-  --accent:#5fb0e6; --accent-ink:#0b1720; --sea:#0e1820; --land:#1c262d; --coast:#3a4954; --rail:#9fb0bd;
-  --st-none:#7d8a93; --st-planned:#6b9cf2; --st-scanned:#42c07a; --st-accepted:#3bc0c6; --st-hold:#f0a93a;
-  --team1:#f07b45; --team2:#5fb0e6; --bad:#f07068; --good:#57c784; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#11171d; --panel:#161e25; --ink:#e4e9ec; --muted:#97a5ad; --line:#2a3640; --soft:#1e2830;
   --accent:#5fb0e6; --accent-ink:#0b1720; --sea:#0e1820; --land:#1c262d; --coast:#3a4954; --rail:#9fb0bd;
